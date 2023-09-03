@@ -22,3 +22,6 @@ class User(models.Model):
     phone = models.CharField(max_length=15, null=True, blank=True)
     sex = models.CharField(max_length=9, choices=SEX_CHOICE)
     address = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.email

@@ -16,3 +16,11 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+    
+class Categoria(models.Model):    
+    name = models.CharField(max_length=255)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    

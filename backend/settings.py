@@ -35,7 +35,6 @@ CRLF_TRUSTED_ORIGINS = ['hendrickfs.pythonanywhere.com']
 # Application definition
 
 INSTALLED_APPS = [
-    'book.apps.BookConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'user',
+    'book',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [

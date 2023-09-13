@@ -20,7 +20,7 @@ class Book(models.Model):
     pages = models.IntegerField()
     price = models.FloatField()
     stock = models.IntegerField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.CharField(max_length=100)
 
     def __str__(self):
         return self.title

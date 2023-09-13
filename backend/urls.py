@@ -19,10 +19,12 @@ from django.urls import path, include
 
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
+from user.api import viewsets as userviewsets
 
 route = routers.DefaultRouter()
 
 route.register(r'book', bookviewsets.BookViewsSet, basename="Book")
+route.register(r'user', userviewsets.UserViewsSet, basename="User")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

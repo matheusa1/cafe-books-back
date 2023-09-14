@@ -16,9 +16,12 @@ class Book(models.Model):
     publisher = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     language = models.CharField(max_length=100)
+    image = models.CharField(max_length=300)
+    description = models.TextField(max_length=300)
     year = models.IntegerField()
     pages = models.IntegerField()
     price = models.FloatField()
+    promotional_price = models.FloatField(null=True, blank=True)
     stock = models.IntegerField()
     category = models.CharField(max_length=100)
 

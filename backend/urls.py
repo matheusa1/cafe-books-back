@@ -20,6 +20,7 @@ from django.urls import path, include
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
+from book.views import BookAPIView
 
 route = routers.DefaultRouter()
 
@@ -30,5 +31,6 @@ route.register(r'category', bookviewsets.CategoryViewsSet, basename="Category")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/book/', BookAPIView.as_view()),
     path('', include(route.urls))
 ]

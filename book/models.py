@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Category(models.Model):    
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, primary_key=True, blank=False, null=False)
     image_url = models.URLField(max_length=500, blank=True, null=True)
 
     def __str__(self):
@@ -23,8 +23,12 @@ class Book(models.Model):
     price = models.FloatField()
     promotional_price = models.FloatField(null=True, blank=True)
     stock = models.IntegerField()
-    category = models.CharField(max_length=100)
+    category = models.ManyToManyField(Category, through='BookCategory')
+
+class BookCategory(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.title
+        return self.book.title + ' - ' + self.category.name
     

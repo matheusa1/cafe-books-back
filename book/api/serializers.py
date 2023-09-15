@@ -11,3 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = models.Category
         fields = '__all__'  
         
+class BookCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.BookCategory
+        fields = '__all__'

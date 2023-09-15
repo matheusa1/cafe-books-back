@@ -10,3 +10,8 @@ class BookViewsSet(viewsets.ModelViewSet):
 class CategoryViewsSet(viewsets.ModelViewSet):
     serializer_class = serializers.CategorySerializer
     queryset = models.Category.objects.all()    
+
+class BookCategoryViewsSet(viewsets.ModelViewSet):
+    serializer_class = serializers.BookCategorySerializer
+    queryset = models.BookCategory.objects.all()
+    

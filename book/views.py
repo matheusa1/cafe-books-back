@@ -23,3 +23,17 @@ class BookAPIView(APIView):
                 book_category.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED) 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        book = Book.objects.get(isbn=request.data['isbn'])
+        serializer = BookSerializer(book, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            for categories in request.data['category']:
+                category = Category.objects.get(name=categories)
+                if(category not in book.category.all()):
+                    book = Book.objects.get(isbn=request.data['isbn'])
+                    book_category = BookCategory(book=book, category=category)
+                    book_category.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED) 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

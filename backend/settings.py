@@ -23,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY ="django-insecure-ae@qh5t_cehdj!*u9e*lae58&l-h#5a5_y$ijn%r1zgqrtoa%x"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost','cafe-books-back.fly.dev']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','hendrickfs.pythonanywhere.com']
 CRLF_TRUSTED_ORIGINS = ['hendrickfs.pythonanywhere.com']
 
 
@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'user',
     'book',
     'rest_framework',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,24 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://hendrickfs.pythonanywhere.com",
+    "https://hendrickfs.pythonanywhere.com",
+]
+
+CORS_ALLOWED_CREDENTIALS = True
+
+CORS_ALLOWED_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
 
 ROOT_URLCONF = 'backend.urls'

@@ -23,6 +23,7 @@ from user.api import viewsets as userviewsets
 from book.views import BookAPIView
 from user.views import UserAPIView
 
+
 route = routers.DefaultRouter()
 
 route.register(r'book', bookviewsets.BookViewsSet, basename="Book")

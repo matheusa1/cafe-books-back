@@ -35,7 +35,8 @@ class BookAPIView(APIView):
             if(Book.objects.get(isbn=request.data['isbn'])):
                 return Response({
                     'error': True,
-                    'message': 'Este ISBN já está cadastrado!'
+                    'message': 'Este ISBN já está cadastrado!',
+                    'type': 'isbn'
                 }, status=status.HTTP_409_CONFLICT)
             if (request.data['isbn'] == '' or request.data['name'] == '' or request.data['author'] == '' or request.data['description'] == '' or request.data['category'] == '' or request.data['image'] == '' or request.data['pages'] == '' or request.data['year'] == '' or request.data['publisher'] == '' or request.data['language'] == '' or request.data['price'] == '' or request.data['stock'] == ''):
                 return Response({

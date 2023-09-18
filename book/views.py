@@ -71,3 +71,11 @@ class BookAPIView(APIView):
                     'message': 'Todos os campos são obrigatórios!'
                 }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):
+        book = Book.objects.get(isbn=request.data['isbn'])
+        book.delete()
+        return Response({
+            'error': False,
+            'message': 'Livro excluído com sucesso!'
+        }, status=status.HTTP_200_OK)

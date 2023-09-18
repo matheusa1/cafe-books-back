@@ -20,11 +20,10 @@ class UserAPIView(APIView):
                 'error': True,
                 'message': 'A senha deve conter no mínimo 8 caracteres!'
             }, status=status.HTTP_409_CONFLICT)
-
         password = request.data['password'].encode('utf-8')
         request.data['password'] = md5(password).hexdigest()
         serializer = UserSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             serializer.save()
             return Response({

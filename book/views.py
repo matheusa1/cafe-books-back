@@ -17,12 +17,32 @@ class BookAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
             for categories in request.data['category']:
+                if(Category.objects.filter(name=categories).exists() == False):
+                    return Response({
+                        'error': True,
+                        'message': 'Esta categoria não existe!'
+                    }, status=status.HTTP_409_CONFLICT)
                 category = Category.objects.get(name=categories)
                 book = Book.objects.get(isbn=request.data['isbn'])
                 book_category = BookCategory(book=book, category=category)
                 book_category.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED) 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'error': False,
+                'message': 'Livro cadastrado com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+        
+        if serializer.errors:
+            if(Book.objects.get(isbn=request.data['isbn'])):
+                return Response({
+                    'error': True,
+                    'message': 'Este ISBN já está cadastrado!'
+                }, status=status.HTTP_409_CONFLICT)
+            if (request.data['isbn'] == '' or request.data['name'] == '' or request.data['author'] == '' or request.data['description'] == '' or request.data['category'] == '' or request.data['image'] == '' or request.data['pages'] == '' or request.data['year'] == '' or request.data['publisher'] == '' or request.data['language'] == '' or request.data['price'] == '' or request.data['stock'] == ''):
+                return Response({
+                    'error': True,
+                    'message': 'Todos os campos são obrigatórios!'
+                }, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
         book = Book.objects.get(isbn=request.data['isbn'])
@@ -35,5 +55,14 @@ class BookAPIView(APIView):
                     book = Book.objects.get(isbn=request.data['isbn'])
                     book_category = BookCategory(book=book, category=category)
                     book_category.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED) 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'error': False,
+                'message': 'Livro atualizado com sucesso!'
+            }, status=status.HTTP_201_CREATED) 
+        if serializer.errors:
+            if (request.data['isbn'] == '' or request.data['name'] == '' or request.data['author'] == '' or request.data['description'] == '' or request.data['category'] == '' or request.data['image'] == '' or request.data['pages'] == '' or request.data['year'] == '' or request.data['publisher'] == '' or request.data['language'] == '' or request.data['price'] == '' or request.data['stock'] == ''):
+                return Response({
+                    'error': True,
+                    'message': 'Todos os campos são obrigatórios!'
+                }, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

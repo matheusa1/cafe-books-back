@@ -49,6 +49,11 @@ class BookAPIView(APIView):
         serializer = BookSerializer(book, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            for categories in book.category.all():
+                if(categories.name not in request.data['category']):
+                    book = Book.objects.get(isbn=request.data['isbn'])
+                    book_category = BookCategory.objects.get(book=book, category=categories)
+                    book_category.delete()
             for categories in request.data['category']:
                 category = Category.objects.get(name=categories)
                 if(category not in book.category.all()):

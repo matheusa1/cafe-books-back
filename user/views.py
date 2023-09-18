@@ -15,7 +15,7 @@ class UserAPIView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        if(len(request.data['password']) < 8):
+        if(len(request.data['password']) < 6):
             return Response({
                 'error': True,
                 'message': 'A senha deve conter no mínimo 8 caracteres!'

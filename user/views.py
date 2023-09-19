@@ -18,7 +18,7 @@ class UserAPIView(APIView):
         if(len(request.data['password']) < 6):
             return Response({
                 'error': True,
-                'message': 'A senha deve conter no mínimo 8 caracteres!'
+                'message': 'A senha deve conter no mínimo 6 caracteres!'
             }, status=status.HTTP_409_CONFLICT)
         password = request.data['password'].encode('utf-8')
         request.data['password'] = md5(password).hexdigest()

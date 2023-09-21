@@ -26,7 +26,7 @@ class UserAPIView(APIView):
             }, status=status.HTTP_409_CONFLICT)
         password = request.data['password'].encode('utf-8')
         request.data['password'] = md5(password).hexdigest()
-        request.data['type'] = 'user'
+        request.data['type'] = 'User'
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():

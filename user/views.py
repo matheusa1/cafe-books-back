@@ -26,6 +26,7 @@ class UserAPIView(APIView):
             }, status=status.HTTP_409_CONFLICT)
         password = request.data['password'].encode('utf-8')
         request.data['password'] = md5(password).hexdigest()
+        request.data['type'] = 'user'
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -41,7 +42,7 @@ class UserAPIView(APIView):
                     'error': True,
                     'message': 'Este e-mail já está cadastrado!'
                 }, status=status.HTTP_409_CONFLICT)
-            if (request.data['name'] == '' or request.data['email'] == '' or request.data['password'] == '' or request.data['sex'] == '' or request.data['type'] == ''):
+            if (request.data['name'] == '' or request.data['email'] == '' or request.data['password'] == ''):
                 return Response({
                     'error': True,
                     'message': 'Todos os campos são obrigatórios!'

@@ -29,6 +29,7 @@ class BookCategory(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
 
+
     def __str__(self):
         return self.book.title + ' - ' + self.category.name
     

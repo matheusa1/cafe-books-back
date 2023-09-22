@@ -13,7 +13,7 @@ class User(models.Model):
         ('Outro', 'outro'), 
     )
 
-    type = models.CharField(max_length=5, choices=USER_TYPE_CHOICES, default='user')
+    type = models.CharField(max_length=5, choices=USER_TYPE_CHOICES, default='User')
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)

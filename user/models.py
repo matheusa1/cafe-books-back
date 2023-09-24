@@ -25,10 +25,31 @@ class User(models.Model):
     address = models.TextField(null=True, blank=True)
     favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
 
+    def __str__(self):
+        return self.name
 
 class UserFavorites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.email
+        return self.user.name + ' - ' + self.book.title
+
+class Purchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    total = models.FloatField()
+    books = models.ManyToManyField(Book, through='PurchaseItem')
+
+    def __str__(self):
+        return self.user.name + ' - ' + str(self.date)
+    
+class PurchaseItem(models.Model):
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    price = models.FloatField()
+
+    def __str__(self):
+        return self.purchase.user.name + ' - ' + self.book.title + ' - ' + str(self.quantity) + ' - ' + str(self.price)
+

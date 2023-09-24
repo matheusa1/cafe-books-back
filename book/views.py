@@ -80,3 +80,4 @@ class BookAPIView(APIView):
             'error': False,
             'message': 'Livro excluído com sucesso!'
         }, status=status.HTTP_200_OK)
+    

@@ -24,6 +24,7 @@ class User(models.Model):
     sex = models.CharField(max_length=9, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
+    purchases = models.ManyToManyField(Book, through='UserPurchase', blank=True)
 
     def __str__(self):
         return self.name
@@ -52,4 +53,11 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return self.purchase.user.name + ' - ' + self.book.title + ' - ' + str(self.quantity) + ' - ' + str(self.price)
+    
+class UserPurchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.name + ' - ' + self.purchase.user.name + ' - ' + str(self.purchase.date)
 

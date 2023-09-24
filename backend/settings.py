@@ -32,7 +32,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost','hendrickfs.pythonanywhere.com']
 CRLF_TRUSTED_ORIGINS = ['hendrickfs.pythonanywhere.com']
 
 
-# Application definition
+# Application definition]
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',

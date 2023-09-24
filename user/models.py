@@ -24,7 +24,6 @@ class User(models.Model):
     sex = models.CharField(max_length=9, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
-    purchases = models.ManyToManyField(Book, through='UserPurchase', blank=True)
 
     def __str__(self):
         return self.name

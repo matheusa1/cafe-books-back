@@ -2,6 +2,16 @@ from django.db import models
 from book.models import Book
 
 # Create your models here.
+
+class Purchase(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, default=None)
+    date = models.DateTimeField(auto_now_add=True)
+    total = models.FloatField()
+    books = models.ManyToManyField(Book, through='PurchaseItem')
+
+    def __str__(self):
+        return self.user.name + ' - ' + str(self.date)
+    
 class User(models.Model):
     USER_TYPE_CHOICES = (
         ('Admin', 'admin'), 
@@ -23,7 +33,8 @@ class User(models.Model):
     phone = models.CharField(max_length=15, null=True, blank=True)
     sex = models.CharField(max_length=9, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
-    favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
+    favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True, null=True)
+    purchases = models.ManyToManyField(Purchase, through='UserPurchase', blank=True, related_name='purchases', null=True)
 
     def __str__(self):
         return self.name
@@ -34,16 +45,8 @@ class UserFavorites(models.Model):
 
     def __str__(self):
         return self.user.name + ' - ' + self.book.title
-
-class Purchase(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    total = models.FloatField()
-    books = models.ManyToManyField(Book, through='PurchaseItem')
-
-    def __str__(self):
-        return self.user.name + ' - ' + str(self.date)
     
+
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)

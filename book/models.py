@@ -17,7 +17,7 @@ class Book(models.Model):
     country = models.CharField(max_length=100)
     language = models.CharField(max_length=100)
     image = models.CharField(max_length=300)
-    description = models.TextField(max_length=300)
+    description = models.TextField()
     year = models.IntegerField()
     pages = models.IntegerField()
     price = models.FloatField()

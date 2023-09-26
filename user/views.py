@@ -74,3 +74,4 @@ class LoginView(APIView):
                     'error': True,
                     'message': 'Senha incorreta!'
                 }, status=status.HTTP_401_UNAUTHORIZED)
+            

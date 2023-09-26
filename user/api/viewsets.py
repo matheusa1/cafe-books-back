@@ -6,3 +6,6 @@ class UserViewsSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
     queryset = models.User.objects.all()
     
+class PurchaseViewsSet(viewsets.ModelViewSet):
+    serializer_class = serializers.PurchaseSerializer
+    queryset = models.Purchase.objects.all()

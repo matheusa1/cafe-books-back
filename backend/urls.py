@@ -29,6 +29,7 @@ route = routers.DefaultRouter()
 route.register(r'book', bookviewsets.BookViewsSet, basename="Book")
 route.register(r'user', userviewsets.UserViewsSet, basename="User")
 route.register(r'category', bookviewsets.CategoryViewsSet, basename="Category")
+route.register(r'author', bookviewsets.AuthorViewsSet, basename="Author")
 
 
 urlpatterns = [

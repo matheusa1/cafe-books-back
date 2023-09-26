@@ -29,7 +29,7 @@ class Book(models.Model):
     promotional_price = models.FloatField(null=True, blank=True)
     stock = models.IntegerField()
     category = models.ManyToManyField(Category, through='BookCategory')
-    # author = models.ManyToManyField(Author, through='BookAuthor')
+    author = models.ManyToManyField(Author, through='BookAuthor')
 
     def __str__(self):
         return self.title
@@ -41,9 +41,9 @@ class BookCategory(models.Model):
     def __str__(self):
         return self.book.title + ' - ' + self.category.name
 
-#class BookAuthor(models.Model):
-#     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-#     author = models.ForeignKey(Author, on_delete=models.CASCADE)
+class BookAuthor(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
 
-#     def __str__(self):
-#         return self.book.title + ' - ' + self.author.name
+    def __str__(self):
+        return self.book.title + ' - ' + self.author.name

@@ -4,10 +4,11 @@ from book.models import Book
 # Create your models here.
 
 class Purchase(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE, default=None)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
-    total = models.FloatField()
+    total = models.FloatField(default=0)
     books = models.ManyToManyField(Book, through='PurchaseItem')
+    freight = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return self.user.name + ' - ' + str(self.date)

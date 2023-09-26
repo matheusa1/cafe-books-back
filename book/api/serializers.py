@@ -15,3 +15,8 @@ class BookCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.BookCategory
         fields = '__all__'
+
+class AuthorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Author
+        fields = '__all__'

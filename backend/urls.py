@@ -21,7 +21,9 @@ from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
 from book.views import BookAPIView
-from user.views import UserAPIView
+from user.views import UserAPIView, LoginView
+
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
 route = routers.DefaultRouter()
@@ -36,5 +38,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/book/', BookAPIView.as_view()),
     path('api/user/', UserAPIView.as_view()),
-    path('', include(route.urls))
+    path('token/', TokenObtainPairView.as_view(), name='token_pair'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('', include(route.urls)),
 ]

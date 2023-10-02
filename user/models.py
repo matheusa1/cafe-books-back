@@ -33,8 +33,8 @@ class User(models.Model):
     phone = models.CharField(max_length=15, null=True, blank=True)
     sex = models.CharField(max_length=9, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
-    favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True, null=True)
-    purchases = models.ManyToManyField(Purchase, through='UserPurchase', blank=True, related_name='purchases', null=True)
+    favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
+    purchases = models.ManyToManyField(Purchase, through='UserPurchase', blank=True, related_name='purchases')
 
     def __str__(self):
         return self.name

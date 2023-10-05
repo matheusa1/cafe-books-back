@@ -131,7 +131,7 @@ class AuthorAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
-        author = Author.objects.get(id=request.data['name'])
+        author = Author.objects.get(name=request.data['name'])
         author.delete()
         return Response({
             'error': False,

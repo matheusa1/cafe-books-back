@@ -20,7 +20,7 @@ from django.urls import path, include
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
-from book.views import BookAPIView
+from book.views import BookAPIView, AuthorAPIView
 from user.views import UserAPIView
 
 
@@ -36,5 +36,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/book/', BookAPIView.as_view()),
     path('api/user/', UserAPIView.as_view()),
+    path('api/book/author/', AuthorAPIView.as_view()),
     path('', include(route.urls))
 ]

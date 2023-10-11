@@ -137,3 +137,58 @@ class AuthorAPIView(APIView):
             'error': False,
             'message': 'Autor excluído com sucesso!'
         }, status=status.HTTP_200_OK)
+
+class CategoryAPIView(APIView):
+    def get(self, request):
+        category = Category.objects.all()
+        serializer = CategorySerializer(category, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'error': False,
+                'message': 'Categoria cadastrada com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+
+        if serializer.errors:
+            if (Category.objects.filter(name=request.data['name']).exists()):
+                return Response({
+                    'error': True,
+                    'message': 'Esta categoria já está cadastrada!',
+                    'type': 'category'
+                }, status=status.HTTP_409_CONFLICT)
+            if (request.data['name'] == ''):
+                return Response({
+                    'error': True,
+                    'message': 'Todos os campos são obrigatórios!'
+                }, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        category = Category.objects.get(name=request.data['name'], image=request.data['image'])
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'error': False,
+                'message': 'Categoria atualizada com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+        if serializer.errors:
+            if (request.data['name'] == '' or request.data['image'] == ''):
+                return Response({
+                    'error': True,
+                    'message': 'Todos os campos são obrigatórios!'
+                }, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        category = Category.objects.get(name=request.data['name'])
+        category.delete()
+        return Response({
+            'error': False,
+            'message': 'Categoria excluída com sucesso!'
+        }, status=status.HTTP_200_OK)
+    

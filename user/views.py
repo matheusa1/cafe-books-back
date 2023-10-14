@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import User
-from .api.serializers import UserSerializer
+from .models import User, Purchase
+from .api.serializers import UserSerializer, PurchaseSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
@@ -53,41 +53,9 @@ class UserAPIView(APIView):
                 }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-# @csrf_exempt
-class LoginView(APIView):
-    # authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
-    
+class PurchaseAPIView(APIView):
     def get(self, request):
-        return Response({
-            'user': request.user,
-            'token': request.auth
-        })
+        purchase = Purchase.objects.all()
+        serializer = PurchaseSerializer(purchase, many=True)
+        return Response(serializer.data)
     
-    def post(self, request):
-        password = request.data['password'].encode('utf-8')
-        hashPassword = md5(password).hexdigest()
-        # user = authenticate(email=request.data['email'], password=hashPassword)
-        user = User.objects.get(email=request.data['email'])
-        print(request.data['email'])
-        print(user)
-        print(request.data['password'])
-        print(hashPassword)
-        if user is not None:
-            token = Token.objects.get(user=user)
-            return Response({
-                'user': user,
-                'token': token
-            }, status=status.HTTP_200_OK)
-        else:
-            if(User.objects.filter(email=request.data['email']).exists() == False):
-                return Response({
-                    'error': True,
-                    'message': 'Este e-mail não está cadastrado!'
-                }, status=status.HTTP_401_UNAUTHORIZED)
-            else:
-                return Response({
-                    'error': True,
-                    'message': 'Senha incorreta!'
-                }, status=status.HTTP_401_UNAUTHORIZED)
-            

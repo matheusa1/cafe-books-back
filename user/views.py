@@ -83,6 +83,7 @@ class PurchaseAPIView(APIView):
                 request.data['address'] = user.address
         request.data['total'] = 0
 
+        serializer = PurchaseSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             for book in request.data['books']:
@@ -91,29 +92,24 @@ class PurchaseAPIView(APIView):
                         'error': True,
                         'message': 'Este livro não existe!'
                     }, status=status.HTTP_409_CONFLICT)
-                book = Book.objects.get(id=book)
+                book = Book.objects.get(isbn=book)
                 purchase = Purchase.objects.get(id=request.data['id'])
                 purchase_item = PurchaseItem(purchase=purchase, book=book)
                 purchase_item.save()
                 purchase.total = purchase.total + book.price
                 book.stock = book.stock - 1
                 book.save()
-            
+
             purchase.save()
             return Response({
                 'error': False,
                 'message': 'Compra cadastrada com sucesso!'
             }, status=status.HTTP_201_CREATED)
 
-        
-        
-
-
-        serializer = PurchaseSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({
-                'error': False,
-                'message': 'Compra cadastrada com sucesso!'
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.errors:
+            if (request.data['user'] == '' or request.data['books'] == '' or request.data['address'] == ''):
+                return Response({
+                    'error': True,
+                    'message': 'Todos os campos são obrigatórios!'
+                }, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

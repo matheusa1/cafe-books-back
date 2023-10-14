@@ -45,15 +45,6 @@ class UserManager(BaseUserManager):
         return user
     
 class User(AbstractUser):
-    USER_TYPE_CHOICES = (
-        ('Admin', 'admin'), 
-        ('User', 'user'),
-    )
-    SEX_CHOICE = (
-        ('Masculino', 'masculino'),
-        ('Feminino', 'feminino'),
-        ('Outro', 'outro'), 
-    )
 
     username = None
     type = models.CharField(max_length=5, default='user')

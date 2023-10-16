@@ -14,7 +14,7 @@ class Purchase(models.Model):
     books = models.ManyToManyField(Book, through='PurchaseItem')
     address = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=20, default='Pendente')
-
+    
     def __str__(self):
         return self.user.name + ' - ' + str(self.date)
     
@@ -46,7 +46,6 @@ class UserManager(BaseUserManager):
         return user
     
 class User(AbstractUser):
-
     username = None
     type = models.CharField(max_length=5, default='user')
     id = models.AutoField(primary_key=True)
@@ -66,9 +65,19 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name', 'password']
 
-
     def __str__(self):
         return self.name
+
+class Purchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    total = models.FloatField(default=0)
+    books = models.ManyToManyField(Book, through='PurchaseItem')
+    freight = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name + ' - ' + str(self.date)
+
 
 class UserFavorites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -76,7 +85,7 @@ class UserFavorites(models.Model):
 
     def __str__(self):
         return self.user.name + ' - ' + self.book.title
-    
+
 
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
@@ -86,11 +95,11 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return self.purchase.user.name + ' - ' + self.book.title + ' - ' + str(self.quantity) + ' - ' + str(self.price)
-    
+
+
 class UserPurchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.name + ' - ' + self.purchase.user.name + ' - ' + str(self.purchase.date)
-

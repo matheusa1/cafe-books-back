@@ -198,3 +198,69 @@ class FavoritesAPIView(APIView):
             'error': False,
             'message': 'Livro removido dos favoritos com sucesso!'
         }, status=status.HTTP_201_CREATED)
+
+class CartAPIView(APIView):
+    def get(self, request):
+        user = User.objects.get(id=request.GET['user'])
+        if(user.cart == None):
+            return Response({
+                'error': True,
+                'message': 'Carrinho vazio!'
+            }, status=status.HTTP_409_CONFLICT)
+        serializer = PurchaseSerializer(user.cart, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        user = User.objects.get(id=request.data['user'])
+        if(user.cart == None):
+            purchase = Purchase(user=user, status='Pendente')
+            purchase.save()
+            user.cart = purchase
+            user.save()
+        else:
+            purchase = user.cart
+            purchase.total = 0
+        
+        if(request.data['book'] == ''):
+            return Response({
+                'error': True,
+                'message': 'Nenhum livro informado!'
+            }, status=status.HTTP_409_CONFLICT)
+        
+        book = Book.objects.get(isbn=request.data['book'])
+
+        if(request.data['add'] == 'true'):
+            if(book.stock == 0):
+                return Response({
+                    'error': True,
+                    'message': 'Não há estoque deste livro!'
+                }, status=status.HTTP_409_CONFLICT)
+            purchase_item = PurchaseItem(purchase=purchase, book=book)
+            purchase_item.save()
+            purchase.total = purchase.total + book.price
+            purchase.save()
+            return Response({
+                'error': False,
+                'message': 'Livro adicionado ao carrinho com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+        
+        if(request.data['add'] == 'false'):
+            purchase_item = PurchaseItem.objects.get(purchase=purchase, book=book)
+            purchase.total = purchase.total - book.price
+            purchase_item.delete()
+            purchase.save()
+            return Response({
+                'error': False,
+                'message': 'Livro removido do carrinho com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        user = User.objects.get(id=request.data['user'])
+        purchase = Purchase.objects.get(id=request.data['id'])
+        purchase.delete()
+        user.cart = None
+        user.save()
+        return Response({
+            'error': False,
+            'message': 'Carrinho excluído com sucesso!'
+        }, status=status.HTTP_201_CREATED)

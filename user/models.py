@@ -58,6 +58,7 @@ class User(AbstractUser):
     address = models.TextField(null=True, blank=True)
     favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
     purchases = models.ManyToManyField(Purchase, through='UserPurchase', blank=True, related_name='purchases')
+    cart = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True, related_name='cart')
 
     objects = UserManager()
 

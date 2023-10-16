@@ -1,7 +1,8 @@
 from django.shortcuts import render
-from .models import User, Purchase, PurchaseItem
+from .models import User, Purchase, PurchaseItem, UserFavorites
 from book.models import Book
 from .api.serializers import UserSerializer, PurchaseSerializer
+from book.api.serializers import BookSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
@@ -113,3 +114,87 @@ class PurchaseAPIView(APIView):
                     'message': 'Todos os campos são obrigatórios!'
                 }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def put(self, request):
+        purchase = Purchase.objects.get(id=request.data['id'])
+        purchase.status = request.data['status']
+        if request.data['books'] != []:
+            for book in request.data['books']:
+                if(Book.objects.filter(isbn=book).exists() == False):
+                    return Response({
+                        'error': True,
+                        'message': 'Este livro não existe!'
+                    }, status=status.HTTP_409_CONFLICT)
+                book = Book.objects.get(isbn=book)
+                purchase_item = PurchaseItem(purchase=purchase, book=book)
+                purchase_item.save()
+                purchase.total = purchase.total + book.price
+                book.stock = book.stock - 1
+                book.save()
+
+        purchase.save()
+        return Response({
+            'error': False,
+            'message': 'Status atualizado com sucesso!'
+        }, status=status.HTTP_201_CREATED)
+    def delete(self, request):
+        purchase = Purchase.objects.get(id=request.data['id'])
+        purchase.delete()
+        return Response({
+            'error': False,
+            'message': 'Compra excluída com sucesso!'
+        }, status=status.HTTP_201_CREATED)
+    
+class FavoritesAPIView(APIView):
+    def get(self, request):
+        user = User.objects.get(id=request.GET['user'])
+        books = user.favorites.all()
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        if(request.data['user'] == ''):
+            return Response({
+                'error': True,
+                'message': 'Usuário não informado!'
+            }, status=status.HTTP_409_CONFLICT)
+        user = User.objects.get(id=request.data['user'])
+
+        if(request.data['book'] == ''):
+            return Response({
+                'error': True,
+                'message': 'Livro não informado!'
+            }, status=status.HTTP_409_CONFLICT)
+        if(Book.objects.filter(isbn=request.data['book']).exists() == False):
+            return Response({
+                'error': True,
+                'message': 'Este livro não existe!'
+            }, status=status.HTTP_409_CONFLICT)
+        book = Book.objects.get(isbn=request.data['book'])
+
+        if(user.favorites.filter(isbn=book.isbn).exists()):
+            return Response({
+                'error': True,
+                'message': 'Este livro já está nos favoritos!'
+            }, status=status.HTTP_409_CONFLICT)
+        user_favorite = UserFavorites(user=user, book=book)
+        user_favorite.save()
+        return Response({
+            'error': False,
+            'message': 'Livro adicionado aos favoritos com sucesso!'
+        }, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request):
+        user = User.objects.get(id=request.data['user'])
+        book = Book.objects.get(isbn=request.data['book'])
+        if(user.favorites.filter(isbn=book.isbn).exists() == False):
+            return Response({
+                'error': True,
+                'message': 'Este livro não está nos favoritos!'
+            }, status=status.HTTP_409_CONFLICT)
+        user_favorite = UserFavorites.objects.get(user=user, book=book)
+        user_favorite.delete()
+        return Response({
+            'error': False,
+            'message': 'Livro removido dos favoritos com sucesso!'
+        }, status=status.HTTP_201_CREATED)

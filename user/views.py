@@ -95,7 +95,7 @@ class PurchaseAPIView(APIView):
                     }, status=status.HTTP_409_CONFLICT)
                 book = Book.objects.get(isbn=book)
                 purchase = Purchase.objects.get(id=request.data['id'])
-                purchase_item = PurchaseItem(purchase=purchase, book=book)
+                purchase_item = PurchaseItem(purchase=purchase, book=book, price=book.price, quantity=1)
                 purchase_item.save()
                 purchase.total = purchase.total + book.price
                 book.stock = book.stock - 1

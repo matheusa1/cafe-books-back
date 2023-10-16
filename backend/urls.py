@@ -26,20 +26,22 @@ from user.views import UserAPIView, LoginView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
+
 route = routers.DefaultRouter()
 
 route.register(r'book', bookviewsets.BookViewsSet, basename="Book")
 route.register(r'user', userviewsets.UserViewsSet, basename="User")
 route.register(r'category', bookviewsets.CategoryViewsSet, basename="Category")
 route.register(r'author', bookviewsets.AuthorViewsSet, basename="Author")
-
+route.register(r'bookcategory', bookviewsets.BookCategoryViewsSet, basename="BookCategory")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/book/', BookAPIView.as_view()),
     path('api/user/', UserAPIView.as_view()),
-    path('login/', LoginView.as_view()),
     path('token/', TokenObtainPairView.as_view(), name='token_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('', include(route.urls)),
+    path('api/book/category/', CategoryAPIView.as_view()),
+    path('api/book/author/', AuthorAPIView.as_view()),
+    path('', include(route.urls))
 ]

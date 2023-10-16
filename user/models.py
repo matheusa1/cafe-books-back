@@ -6,12 +6,6 @@ from django.contrib.auth.models import BaseUserManager
 
 # Create your models here.
 
-class Purchase(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE, default=None)
-    date = models.DateTimeField(auto_now_add=True)
-    total = models.FloatField()
-    books = models.ManyToManyField(Book, through='PurchaseItem')
-
     def __str__(self):
         return self.user.name + ' - ' + str(self.date)
     
@@ -43,14 +37,15 @@ class UserManager(BaseUserManager):
         return user
     
 class User(AbstractUser):
+
     USER_TYPE_CHOICES = (
-        ('Admin', 'admin'), 
+        ('Admin', 'admin'),
         ('User', 'user'),
     )
     SEX_CHOICE = (
         ('Masculino', 'masculino'),
         ('Feminino', 'feminino'),
-        ('Outro', 'outro'), 
+        ('Outro', 'outro'),
     )
 
     username = None
@@ -71,9 +66,19 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name', 'password']
 
-
     def __str__(self):
         return self.name
+
+class Purchase(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)
+    total = models.FloatField(default=0)
+    books = models.ManyToManyField(Book, through='PurchaseItem')
+    freight = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return self.user.name + ' - ' + str(self.date)
+
 
 class UserFavorites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -81,7 +86,7 @@ class UserFavorites(models.Model):
 
     def __str__(self):
         return self.user.name + ' - ' + self.book.title
-    
+
 
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
@@ -91,11 +96,11 @@ class PurchaseItem(models.Model):
 
     def __str__(self):
         return self.purchase.user.name + ' - ' + self.book.title + ' - ' + str(self.quantity) + ' - ' + str(self.price)
-    
+
+
 class UserPurchase(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.user.name + ' - ' + self.purchase.user.name + ' - ' + str(self.purchase.date)
-

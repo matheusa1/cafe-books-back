@@ -58,7 +58,7 @@ class User(AbstractUser):
     address = models.TextField(null=True, blank=True)
     favorites = models.ManyToManyField(Book, through='UserFavorites', blank=True)
     purchases = models.ManyToManyField(Purchase, through='UserPurchase', blank=True, related_name='purchases')
-    cart = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True, related_name='cart')
+    cart = models.ForeignKey(Purchase, on_delete=models.CASCADE, null=True, blank=True, related_name='cart', default=None)
 
     objects = UserManager()
 
@@ -67,17 +67,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.name
-
-class Purchase(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateTimeField(auto_now_add=True)
-    total = models.FloatField(default=0)
-    books = models.ManyToManyField(Book, through='PurchaseItem')
-    freight = models.FloatField(null=True, blank=True)
-
-    def __str__(self):
-        return self.user.name + ' - ' + str(self.date)
-
 
 class UserFavorites(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

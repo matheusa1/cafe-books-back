@@ -20,7 +20,7 @@ from django.urls import path, include
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
-from book.views import BookAPIView
+from book.views import BookAPIView, CategoryAPIView, AuthorAPIView
 from user.views import UserAPIView, PurchaseAPIView, CartAPIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView

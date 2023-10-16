@@ -9,6 +9,10 @@ from rest_framework import status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.hashers import make_password
+
+from django.views.decorators.csrf import csrf_exempt
 
 from hashlib import md5
 
@@ -24,8 +28,8 @@ class UserAPIView(APIView):
                 'error': True,
                 'message': 'A senha deve conter no mínimo 6 caracteres!'
             }, status=status.HTTP_409_CONFLICT)
-        password = request.data['password'].encode('utf-8')
-        request.data['password'] = md5(password).hexdigest()
+        password = request.data['password']
+        request.data['password'] = make_password(password)
         request.data['type'] = 'User'
         serializer = UserSerializer(data=request.data)
 
@@ -49,19 +53,31 @@ class UserAPIView(APIView):
                 }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-
+# @csrf_exempt
 class LoginView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
-
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        return Response({
+            'user': request.user,
+            'token': request.auth
+        })
+    
     def post(self, request):
         password = request.data['password'].encode('utf-8')
         hashPassword = md5(password).hexdigest()
-        user = authenticate(email=request.data['email'], password=hashPassword)
+        # user = authenticate(email=request.data['email'], password=hashPassword)
+        user = User.objects.get(email=request.data['email'])
+        print(request.data['email'])
+        print(user)
+        print(request.data['password'])
+        print(hashPassword)
         if user is not None:
+            token = Token.objects.get(user=user)
             return Response({
                 'user': user,
-                'token': user.auth_token.key
+                'token': token
             }, status=status.HTTP_200_OK)
         else:
             if(User.objects.filter(email=request.data['email']).exists() == False):

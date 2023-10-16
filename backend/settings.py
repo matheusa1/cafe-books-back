@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'user',
     'book',
     'rest_framework',
-    # 'rest_framework.authtoken',
+    'rest_framework.authtoken',
     'corsheaders',
 ]
 
@@ -68,6 +68,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://cafe-books-front-dxnuuny2q-matheusa1.vercel.app",
     "https://cafe-books-front.vercel.app",
 ]
+CSRF_TRUSTED_ORIGINS = [
+        "http://localhost:3000",
+    "http://hendrickfs.pythonanywhere.com",
+    "https://hendrickfs.pythonanywhere.com",
+    "https://vercel.app",
+    "https://cafe-books-front-dxnuuny2q-matheusa1.vercel.app",
+    "https://cafe-books-front.vercel.app",
+]
+
 
 CORS_ALLOWED_CREDENTIALS = True
 
@@ -82,15 +91,21 @@ CORS_ALLOWED_METHODS = [
 
 ROOT_URLCONF = 'backend.urls'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': [
-#         'rest_framework.authentication.TokenAuthentication',
-#         'rest_framework.authentication.SessionAuthentication',
-#     ],
-#     'DEFAULT_PERMISSION_CLASSES': [
-#         'rest_framework.permissions.IsAuthenticated',
-#     ],
-# }
+REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'rest_framework_simplejwt.authentication.JWTAuthentication',
+'rest_framework.authentication.SessionAuthentication'
+,
+],
+}
+
+AUTH_USER_MODEL = 'user.User'
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    # Outros algoritmos de hash, se necessário
+]
+
 
 TEMPLATES = [
     {

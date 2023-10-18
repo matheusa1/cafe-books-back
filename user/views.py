@@ -48,7 +48,7 @@ class UserAPIView(APIView):
                     'error': True,
                     'message': 'Este e-mail já está cadastrado!'
                 }, status=status.HTTP_409_CONFLICT)
-            if (request.data['name'] == '' or request.data['email'] == '' or request.data['password'] == ''):
+            if not request.data.get('name') or not request.data.get('email') or not request.data.get('password'):
                 return Response({
                     'error': True,
                     'message': 'Todos os campos são obrigatórios!'
@@ -86,7 +86,7 @@ class PurchaseAPIView(APIView):
 
         serializer = PurchaseSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            purchase = serializer.save()
             for book in request.data['books']:
                 if(Book.objects.filter(isbn=book).exists() == False):
                     return Response({
@@ -94,7 +94,7 @@ class PurchaseAPIView(APIView):
                         'message': 'Este livro não existe!'
                     }, status=status.HTTP_409_CONFLICT)
                 book = Book.objects.get(isbn=book)
-                purchase = Purchase.objects.get(id=request.data['id'])
+                
                 purchase_item = PurchaseItem(purchase=purchase, book=book, price=book.price, quantity=1)
                 purchase_item.save()
                 purchase.total = purchase.total + book.price
@@ -143,7 +143,7 @@ class PurchaseAPIView(APIView):
         return Response({
             'error': False,
             'message': 'Compra excluída com sucesso!'
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_200_OK)
     
 class FavoritesAPIView(APIView):
     def get(self, request):
@@ -197,70 +197,88 @@ class FavoritesAPIView(APIView):
         return Response({
             'error': False,
             'message': 'Livro removido dos favoritos com sucesso!'
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_200_OK)
 
 class CartAPIView(APIView):
-    def get(self, request):
-        user = User.objects.get(id=request.GET['user'])
-        if(user.cart == None):
-            return Response({
-                'error': True,
-                'message': 'Carrinho vazio!'
-            }, status=status.HTTP_409_CONFLICT)
-        serializer = PurchaseSerializer(user.cart, many=True)
-        return Response(serializer.data)
-    
-    def post(self, request):
-        user = User.objects.get(id=request.data['user'])
-        if(user.cart == None):
-            purchase = Purchase(user=user, status='Pendente')
-            purchase.save()
-            user.cart = purchase
-            user.save()
-        else:
-            purchase = user.cart
-            purchase.total = 0
-        
-        if(request.data['book'] == ''):
-            return Response({
-                'error': True,
-                'message': 'Nenhum livro informado!'
-            }, status=status.HTTP_409_CONFLICT)
-        
-        book = Book.objects.get(isbn=request.data['book'])
 
-        if(request.data['add'] == 'true'):
-            if(book.stock == 0):
+    def get(self, request):
+        try:
+            user = User.objects.get(id=request.GET['user'])
+            
+            if not hasattr(user, 'cart') or user.cart is None:
                 return Response({
                     'error': True,
-                    'message': 'Não há estoque deste livro!'
+                    'message': 'Carrinho vazio!'
                 }, status=status.HTTP_409_CONFLICT)
-            purchase_item = PurchaseItem(purchase=purchase, book=book)
-            purchase_item.save()
-            purchase.total = purchase.total + book.price
-            purchase.save()
-            return Response({
-                'error': False,
-                'message': 'Livro adicionado ao carrinho com sucesso!'
-            }, status=status.HTTP_201_CREATED)
+            
+            serializer = PurchaseSerializer(user.cart)
+            return Response(serializer.data)
+
+        except User.DoesNotExist:
+            return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
         
-        if(request.data['add'] == 'false'):
-            purchase_item = PurchaseItem.objects.get(purchase=purchase, book=book)
-            purchase.total = purchase.total - book.price
-            purchase_item.delete()
-            purchase.save()
-            return Response({
-                'error': False,
-                'message': 'Livro removido do carrinho com sucesso!'
-            }, status=status.HTTP_201_CREATED)
+
+    def post(self, request):
+        try:
+            user = User.objects.get(id=request.data['user'])
+            
+            if not hasattr(user, 'cart') or user.cart is None:
+                purchase = Purchase(user=user, status='Pendente', total=0.0)
+                purchase.save()
+                user.cart = purchase
+                user.save()
+            else:
+                purchase = user.cart
+            
+            if not request.data.get('book'):
+                return Response({'error': True, 'message': 'Nenhum livro informado!'}, status=status.HTTP_409_CONFLICT)
+
+            book = Book.objects.get(isbn=request.data['book'])
+
+            if request.data.get('add', '').lower() == 'true':
+                if book.stock == 0:
+                    return Response({'error': True, 'message': 'Não há estoque deste livro!'}, status=status.HTTP_409_CONFLICT)
+                purchase_item = PurchaseItem(purchase=purchase, book=book, price=book.price, quantity=1)
+                purchase_item.save()
+                purchase.total += book.price
+                purchase.save()
+                return Response({'error': False, 'message': 'Livro adicionado ao carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
+                
+            elif request.data.get('add', '').lower() == 'false':
+                purchase_items = PurchaseItem.objects.filter(purchase=purchase, book=book)
+                if purchase_items.exists():
+                    purchase_item = purchase_items.first()
+                    total_deduction = purchase_item.price * purchase_item.quantity
+                    purchase.total -= total_deduction
+                    purchase.total = max(purchase.total, 0) 
+                    purchase_item.delete()
+                    purchase.save()
+                    return Response({'error': False, 'message': 'Livro removido do carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
+                if not purchase_items.exists():
+                    return Response({'error': True, 'message': 'Este livro não está no carrinho!'}, status=status.HTTP_409_CONFLICT)
+
+            return Response({'error': True, 'message': 'Valor inválido para o campo "add".'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
+        except Book.DoesNotExist:
+            return Response({'error': True, 'message': 'Livro não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
+        
 
     def delete(self, request):
-        user = User.objects.get(id=request.data['user'])
-        purchase = Purchase.objects.get(id=request.data['id'])
-        purchase.delete()
-        user.cart = None
-        user.save()
-        return Response({
-            'error': False,
-            'message': 'Carrinho excluído com sucesso!'
-        }, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.get(id=request.data['user'])
+            purchase = Purchase.objects.get(id=request.data['id'])
+            purchase.delete()
+            user.cart = None
+            user.save()
+            return Response({
+                'error': False,
+                'message': 'Carrinho excluído com sucesso!'
+            }, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
+        except Purchase.DoesNotExist:
+            return Response({'error': True, 'message': 'Carrinho não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
+        
+

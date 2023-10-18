@@ -10,7 +10,7 @@ class Purchase(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey('User', on_delete=models.CASCADE, default=None)
     date = models.DateTimeField(auto_now_add=True)
-    total = models.FloatField()
+    total = models.FloatField(default=0.0)
     books = models.ManyToManyField(Book, through='PurchaseItem')
     address = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=20, default='Pendente')

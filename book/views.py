@@ -6,14 +6,23 @@ from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status
 
+from rest_framework.permissions import IsAuthenticated
+
 
 class BookAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         book = Book.objects.all()
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para cadastrar livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         serializer = BookSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -47,6 +56,12 @@ class BookAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para atualizar livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         book = Book.objects.get(isbn=request.data['isbn'])
         serializer = BookSerializer(book, data=request.data)
         if serializer.is_valid():
@@ -76,6 +91,12 @@ class BookAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para excluir livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         book = Book.objects.get(isbn=request.data['isbn'])
         book.delete()
         return Response({
@@ -85,12 +106,19 @@ class BookAPIView(APIView):
 
 
 class AuthorAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         author = Author.objects.all()
         serializer = AuthorSerializer(author, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para cadastrar autores!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         serializer = AuthorSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -114,6 +142,12 @@ class AuthorAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para atualizar autores!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         author = Author.objects.get(name=request.data['name'])
         serializer = AuthorSerializer(author, data=request.data)
         if serializer.is_valid():
@@ -131,6 +165,12 @@ class AuthorAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para excluir autores!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         author = Author.objects.get(name=request.data['name'])
         author.delete()
         return Response({
@@ -139,12 +179,19 @@ class AuthorAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 class CategoryAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         category = Category.objects.all()
         serializer = CategorySerializer(category, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para cadastrar categorias!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -168,6 +215,12 @@ class CategoryAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para atualizar categorias!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         category = Category.objects.get(name=request.data['name'], image=request.data['image'])
         serializer = CategorySerializer(category, data=request.data)
         if serializer.is_valid():
@@ -185,6 +238,12 @@ class CategoryAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para excluir categorias!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
         category = Category.objects.get(name=request.data['name'])
         category.delete()
         return Response({

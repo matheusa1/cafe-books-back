@@ -64,18 +64,19 @@ class UserAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class PurchaseAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         purchase = Purchase.objects.all()
         serializer = PurchaseSerializer(purchase, many=True)
         return Response(serializer.data)
     
     def post(self, request):
-        if(request.data['user'] == ''):
+        if(not request.user):
             return Response({
                 'error': True,
                 'message': 'Usuário não informado!'
             }, status=status.HTTP_409_CONFLICT)
-        user = User.objects.get(id=request.data['user'])
+        user = request.user
         request.data['user'] = user.id
         if(request.data['books'] == []):
             return Response({
@@ -194,7 +195,7 @@ class FavoritesAPIView(APIView):
         }, status=status.HTTP_201_CREATED)
     
     def delete(self, request):
-        user = User.objects.get(id=request.data['user'])
+        user =  request.user
         book = Book.objects.get(isbn=request.data['book'])
         if(user.favorites.filter(isbn=book.isbn).exists() == False):
             return Response({
@@ -209,10 +210,10 @@ class FavoritesAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 class CartAPIView(APIView):
-
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            user = User.objects.get(id=request.GET['user'])
+            user = request.user
             
             if not hasattr(user, 'cart') or user.cart is None:
                 return Response({
@@ -229,7 +230,7 @@ class CartAPIView(APIView):
 
     def post(self, request):
         try:
-            user = User.objects.get(id=request.data['user'])
+            user = request.user
             
             if not hasattr(user, 'cart') or user.cart is None:
                 purchase = Purchase(user=user, status='Pendente', total=0.0)
@@ -272,11 +273,11 @@ class CartAPIView(APIView):
             return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
         except Book.DoesNotExist:
             return Response({'error': True, 'message': 'Livro não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
-        
+           
 
     def delete(self, request):
         try:
-            user = User.objects.get(id=request.data['user'])
+            user = request.user
             purchase = Purchase.objects.get(id=request.data['id'])
             purchase.delete()
             user.cart = None

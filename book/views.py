@@ -39,7 +39,7 @@ class BookAPIView(APIView):
                     'message': 'Este ISBN já está cadastrado!',
                     'type': 'isbn'
                 }, status=status.HTTP_409_CONFLICT)
-            if (request.data['isbn'] == '' or request.data['name'] == '' or request.data['author'] == '' or request.data['description'] == '' or request.data['category'] == '' or request.data['image'] == '' or request.data['pages'] == '' or request.data['year'] == '' or request.data['publisher'] == '' or request.data['language'] == '' or request.data['price'] == '' or request.data['stock'] == ''):
+            if (request.data['isbn'] == '' or request.data['title'] == '' or request.data['author'] == '' or request.data['description'] == '' or request.data['category'] == '' or request.data['image'] == '' or request.data['pages'] == '' or request.data['year'] == '' or request.data['publisher'] == '' or request.data['language'] == '' or request.data['price'] == '' or request.data['stock'] == ''):
                 return Response({
                     'error': True,
                     'message': 'Todos os campos são obrigatórios!'

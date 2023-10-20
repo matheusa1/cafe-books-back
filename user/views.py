@@ -14,6 +14,7 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import make_password
 
+
 from django.views.decorators.csrf import csrf_exempt
 
 from hashlib import md5
@@ -32,7 +33,14 @@ class UserAPIView(APIView):
             }, status=status.HTTP_409_CONFLICT)
         password = request.data['password']
         request.data['password'] = make_password(password)
-        request.data['type'] = 'User'
+        if(request.data['type'] == ''):
+            request.data['type'] = 'User'
+        elif(request.data['type'] == 'admin'):
+            if(request.data['adminPassword'] != 'admindocafebooks'):
+                return Response({
+                    'error': True,
+                    'message': 'Senha administrativa incorreta!'
+                }, status=status.HTTP_409_CONFLICT)
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -146,19 +154,20 @@ class PurchaseAPIView(APIView):
         }, status=status.HTTP_200_OK)
     
 class FavoritesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
-        user = User.objects.get(id=request.GET['user'])
+        user = request.user
         books = user.favorites.all()
         serializer = BookSerializer(books, many=True)
         return Response(serializer.data)
     
     def post(self, request):
-        if(request.data['user'] == ''):
+        if(not request.user):
             return Response({
                 'error': True,
                 'message': 'Usuário não informado!'
             }, status=status.HTTP_409_CONFLICT)
-        user = User.objects.get(id=request.data['user'])
+        user = request.user
 
         if(request.data['book'] == ''):
             return Response({

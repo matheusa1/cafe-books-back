@@ -18,6 +18,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from hashlib import md5
 
+from rest_framework_simplejwt.views import TokenObtainPairView
+from user.api.serializers import CustomTokenObtainPairSerializer
 class UserAPIView(APIView):
     def get(self, request):
         user = User.objects.all()
@@ -281,4 +283,8 @@ class CartAPIView(APIView):
         except Purchase.DoesNotExist:
             return Response({'error': True, 'message': 'Carrinho não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
         
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
 

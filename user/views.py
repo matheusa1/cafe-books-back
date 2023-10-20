@@ -14,6 +14,7 @@ from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.hashers import make_password
 
+
 from django.views.decorators.csrf import csrf_exempt
 
 from hashlib import md5
@@ -34,7 +35,14 @@ class UserAPIView(APIView):
             }, status=status.HTTP_409_CONFLICT)
         password = request.data['password']
         request.data['password'] = make_password(password)
-        request.data['type'] = 'User'
+        if("type" not in request.data):
+            request.data['type'] = 'User'
+        elif(request.data['type'] == 'admin'):
+            if("adminPassword" not in request.data or request.data['adminPassword'] != 'admindocafebooks'):
+                return Response({
+                    'error': True,
+                    'message': 'Senha administrativa incorreta!'
+                }, status=status.HTTP_409_CONFLICT)
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -58,18 +66,19 @@ class UserAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 class PurchaseAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         purchase = Purchase.objects.all()
         serializer = PurchaseSerializer(purchase, many=True)
         return Response(serializer.data)
     
     def post(self, request):
-        if(request.data['user'] == ''):
+        if(not request.user):
             return Response({
                 'error': True,
                 'message': 'Usuário não informado!'
             }, status=status.HTTP_409_CONFLICT)
-        user = User.objects.get(id=request.data['user'])
+        user = request.user
         request.data['user'] = user.id
         if(request.data['books'] == []):
             return Response({
@@ -148,19 +157,20 @@ class PurchaseAPIView(APIView):
         }, status=status.HTTP_200_OK)
     
 class FavoritesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
     def get(self, request):
-        user = User.objects.get(id=request.GET['user'])
+        user = request.user
         books = user.favorites.all()
         serializer = BookSerializer(books, many=True)
         return Response(serializer.data)
     
     def post(self, request):
-        if(request.data['user'] == ''):
+        if(not request.user):
             return Response({
                 'error': True,
                 'message': 'Usuário não informado!'
             }, status=status.HTTP_409_CONFLICT)
-        user = User.objects.get(id=request.data['user'])
+        user = request.user
 
         if(request.data['book'] == ''):
             return Response({
@@ -187,7 +197,7 @@ class FavoritesAPIView(APIView):
         }, status=status.HTTP_201_CREATED)
     
     def delete(self, request):
-        user = User.objects.get(id=request.data['user'])
+        user =  request.user
         book = Book.objects.get(isbn=request.data['book'])
         if(user.favorites.filter(isbn=book.isbn).exists() == False):
             return Response({
@@ -202,10 +212,10 @@ class FavoritesAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 class CartAPIView(APIView):
-
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         try:
-            user = User.objects.get(id=request.GET['user'])
+            user = request.user
             
             if not hasattr(user, 'cart') or user.cart is None:
                 return Response({
@@ -222,7 +232,7 @@ class CartAPIView(APIView):
 
     def post(self, request):
         try:
-            user = User.objects.get(id=request.data['user'])
+            user = request.user
             
             if not hasattr(user, 'cart') or user.cart is None:
                 purchase = Purchase(user=user, status='Pendente', total=0.0)
@@ -265,11 +275,11 @@ class CartAPIView(APIView):
             return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
         except Book.DoesNotExist:
             return Response({'error': True, 'message': 'Livro não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
-        
+           
 
     def delete(self, request):
         try:
-            user = User.objects.get(id=request.data['user'])
+            user = request.user
             purchase = Purchase.objects.get(id=request.data['id'])
             purchase.delete()
             user.cart = None

@@ -36,7 +36,7 @@ class UserAPIView(APIView):
         if("type" not in request.data):
             request.data['type'] = 'User'
         elif(request.data['type'] == 'admin'):
-            if(request.data['adminPassword'] != 'admindocafebooks'):
+            if("adminPassword" not in request.data or request.data['adminPassword'] != 'admindocafebooks'):
                 return Response({
                     'error': True,
                     'message': 'Senha administrativa incorreta!'

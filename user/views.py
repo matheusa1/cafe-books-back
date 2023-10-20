@@ -33,7 +33,7 @@ class UserAPIView(APIView):
             }, status=status.HTTP_409_CONFLICT)
         password = request.data['password']
         request.data['password'] = make_password(password)
-        if(request.data['type'] == ''):
+        if("type" not in request.data):
             request.data['type'] = 'User'
         elif(request.data['type'] == 'admin'):
             if(request.data['adminPassword'] != 'admindocafebooks'):

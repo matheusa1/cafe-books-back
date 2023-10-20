@@ -12,7 +12,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = models.Purchase
         fields = '__all__'
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-
+    
     @classmethod
     def get_token(cls, user):
         token = super(CustomTokenObtainPairSerializer, cls).get_token(user)
@@ -22,5 +22,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['address'] = user.address
         token['phone'] = user.phone
         token['sex'] = user.sex
+        token['favorites'] = list(user.favorites.values_list('id', flat=True)) if user.favorites.exists() else []
 
         return token

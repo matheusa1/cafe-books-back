@@ -21,7 +21,7 @@ from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
 from book.views import BookAPIView, CategoryAPIView, AuthorAPIView
-from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView
+from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -34,12 +34,15 @@ route.register(r'user', userviewsets.UserViewsSet, basename="User")
 route.register(r'category', bookviewsets.CategoryViewsSet, basename="Category")
 route.register(r'author', bookviewsets.AuthorViewsSet, basename="Author")
 route.register(r'bookcategory', bookviewsets.BookCategoryViewsSet, basename="BookCategory")
+route.register(r'purchase', userviewsets.PurchaseViewsSet, basename="Purchase")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/book/', BookAPIView.as_view()),
     path('api/user/', UserAPIView.as_view()),
     path('api/purchase/', PurchaseAPIView.as_view()),
+    path('api/user/purchase/', GetPurchaseByUser.as_view()),
+    path('api/purchase/withoutcart/', PurchaseWithoutCartAPIView.as_view()),
     path('api/cart/', CartAPIView.as_view()),
     path('api/favorites/', FavoritesAPIView.as_view()),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_pair'),

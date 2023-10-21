@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import User, Purchase, PurchaseItem, UserFavorites
+from .models import User, Purchase, PurchaseItem, UserFavorites, UserPurchase
 from book.models import Book
 from .api.serializers import UserSerializer, PurchaseSerializer
 from book.api.serializers import BookSerializer
@@ -73,17 +73,17 @@ class PurchaseAPIView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        user_id = request.data.get('user')
+        user = request.user
         
         def clear_cart(user):
             user.cart = None
             user.save()
 
-        if not user_id:
+        if not user:
             return Response({'error': True, 'message': 'Usuário não informado!'}, status=status.HTTP_409_CONFLICT)
 
         try:
-            user = User.objects.get(id=user_id)
+            user = User.objects.get(id=user.id)
         except User.DoesNotExist:
             return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -91,11 +91,13 @@ class PurchaseAPIView(APIView):
             return Response({'error': True, 'message': 'Carrinho vazio!'}, status=status.HTTP_409_CONFLICT)
 
         purchase_items = PurchaseItem.objects.filter(purchase=user.cart)
+        print(purchase_items)
 
         new_purchase = Purchase(user=user, status='Pendente', total=user.cart.total, address=request.data.get('address', user.address or ''))
         new_purchase.save()
 
-        for item in purchase_items:           
+        for item in purchase_items:
+            print(item.book.stock)
             if item.book.stock < item.quantity:
                 new_purchase.delete()
                 return Response({'error': True, 'message': f'Estoque insuficiente para o livro {item.book.title}'}, status=status.HTTP_409_CONFLICT)
@@ -103,9 +105,13 @@ class PurchaseAPIView(APIView):
             item.book.stock -= item.quantity
             item.book.save()
             
-            PurchaseItem.objects.create(purchase=new_purchase, book=item.book, price=item.price, quantity=item.quantity)  
+            purchase_item =  PurchaseItem.objects.create(purchase=new_purchase, book=item.book, price=item.price, quantity=item.quantity)
+            purchase_item.save()
 
-        clear_cart(user)      
+        clear_cart(user)
+
+        user_purchase = UserPurchase.objects.create(user=user, purchase=new_purchase)
+        user_purchase.save()
 
         return Response({'error': False, 'message': 'Compra realizada com sucesso!'}, status=status.HTTP_201_CREATED)
         
@@ -139,6 +145,35 @@ class PurchaseAPIView(APIView):
             'message': 'Compra excluída com sucesso!'
         }, status=status.HTTP_200_OK)
     
+class PurchaseWithoutCartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        if(not request.user):
+            return Response({
+                'error': True,
+                'message': 'Usuário não informado!'
+            }, status=status.HTTP_409_CONFLICT)
+        user = request.user
+        purchase = Purchase(user=user, status='Pendente', total=0.0)
+        purchase.save()
+        user_purchase = UserPurchase(user=user, purchase=purchase)
+        user_purchase.save()
+        book = Book.objects.get(isbn=request.data['book'])
+        purchase_item = PurchaseItem(purchase=purchase, book=book)
+        purchase_item.price = book.price
+        purchase_item.quantity = request.data['quantity']
+        purchase_item.save()
+        purchase.total = purchase_item.price * purchase_item.quantity
+        book.stock = book.stock - 1
+        book.save()
+        purchase.save()
+
+        return Response({
+            'error': False,
+            'message': 'Compra criada com sucesso!'
+        }, status=status.HTTP_201_CREATED)
+        
+
 class FavoritesAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -307,3 +342,10 @@ class CartAPIView(APIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+class GetPurchaseByUser(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        user = request.user
+        purchases = user.purchases.all()
+        serializer = PurchaseSerializer(purchases, many=True)
+        return Response(serializer.data)

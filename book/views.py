@@ -36,6 +36,16 @@ class BookAPIView(APIView):
                 book = Book.objects.get(isbn=request.data['isbn'])
                 book_category = BookCategory(book=book, category=category)
                 book_category.save()
+            for author in request.data['author']:
+                if (Author.objects.filter(name=author).exists() == False):
+                    return Response({
+                        'error': True,
+                        'message': 'Este autor não existe!'
+                    }, status=status.HTTP_409_CONFLICT)
+                author = Author.objects.get(name=author)
+                book = Book.objects.get(isbn=request.data['isbn'])
+                book_author = BookAuthor(book=book, author=author)
+                book_author.save()
             return Response({
                 'error': False,
                 'message': 'Livro cadastrado com sucesso!'
@@ -78,6 +88,22 @@ class BookAPIView(APIView):
                     book = Book.objects.get(isbn=request.data['isbn'])
                     book_category = BookCategory(book=book, category=category)
                     book_category.save()
+            for author in book.author.all():
+                if (author.name not in request.data['author']):
+                    book = Book.objects.get(isbn=request.data['isbn'])
+                    book_author = BookAuthor.objects.get(
+                        book=book, author=author)
+                    book_author.delete()
+            for author in request.data['author']:
+                if (Author.objects.filter(name=author).exists() == False):
+                    return Response({
+                        'error': True,
+                        'message': 'Este autor não existe!'
+                    }, status=status.HTTP_409_CONFLICT)
+                author = Author.objects.get(name=author)
+                book = Book.objects.get(isbn=request.data['isbn'])
+                book_author = BookAuthor(book=book, author=author)
+                book_author.save()
             return Response({
                 'error': False,
                 'message': 'Livro atualizado com sucesso!'

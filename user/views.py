@@ -73,58 +73,41 @@ class PurchaseAPIView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        if(not request.user):
-            return Response({
-                'error': True,
-                'message': 'Usuário não informado!'
-            }, status=status.HTTP_409_CONFLICT)
-        user = request.user
-        request.data['user'] = user.id
-        if(request.data['books'] == []):
-            return Response({
-                'error': True,
-                'message': 'Nenhum livro informado!'
-            }, status=status.HTTP_409_CONFLICT)
-        if(request.data['address'] == ''):
-            if(user.address == ''):
-                return Response({
-                    'error': True,
-                    'message': 'Endereço não informado!'
-                }, status=status.HTTP_409_CONFLICT)
-            else:
-                request.data['address'] = user.address
-        request.data['total'] = 0
+        user_id = request.data.get('user')
+        
+        def clear_cart(user):
+            user.cart = None
+            user.save()
 
-        serializer = PurchaseSerializer(data=request.data)
-        if serializer.is_valid():
-            purchase = serializer.save()
-            for book in request.data['books']:
-                if(Book.objects.filter(isbn=book).exists() == False):
-                    return Response({
-                        'error': True,
-                        'message': 'Este livro não existe!'
-                    }, status=status.HTTP_409_CONFLICT)
-                book = Book.objects.get(isbn=book)
-                
-                purchase_item = PurchaseItem(purchase=purchase, book=book, price=book.price, quantity=1)
-                purchase_item.save()
-                purchase.total = purchase.total + book.price
-                book.stock = book.stock - 1
-                book.save()
+        if not user_id:
+            return Response({'error': True, 'message': 'Usuário não informado!'}, status=status.HTTP_409_CONFLICT)
 
-            purchase.save()
-            return Response({
-                'error': False,
-                'message': 'Compra cadastrada com sucesso!'
-            }, status=status.HTTP_201_CREATED)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': True, 'message': 'Usuário não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
 
-        if serializer.errors:
-            if (request.data['user'] == '' or request.data['books'] == '' or request.data['address'] == ''):
-                return Response({
-                    'error': True,
-                    'message': 'Todos os campos são obrigatórios!'
-                }, status=status.HTTP_409_CONFLICT)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not hasattr(user, 'cart') or user.cart is None:
+            return Response({'error': True, 'message': 'Carrinho vazio!'}, status=status.HTTP_409_CONFLICT)
+
+        purchase_items = PurchaseItem.objects.filter(purchase=user.cart)
+
+        new_purchase = Purchase(user=user, status='Pendente', total=user.cart.total, address=request.data.get('address', user.address or ''))
+        new_purchase.save()
+
+        for item in purchase_items:           
+            if item.book.stock < item.quantity:
+                new_purchase.delete()
+                return Response({'error': True, 'message': f'Estoque insuficiente para o livro {item.book.title}'}, status=status.HTTP_409_CONFLICT)
+
+            item.book.stock -= item.quantity
+            item.book.save()
+            
+            PurchaseItem.objects.create(purchase=new_purchase, book=item.book, price=item.price, quantity=item.quantity)  
+
+        clear_cart(user)      
+
+        return Response({'error': False, 'message': 'Compra realizada com sucesso!'}, status=status.HTTP_201_CREATED)
         
     def put(self, request):
         purchase = Purchase.objects.get(id=request.data['id'])
@@ -247,27 +230,53 @@ class CartAPIView(APIView):
 
             book = Book.objects.get(isbn=request.data['book'])
 
-            if request.data.get('add', '').lower() == 'true':
-                if book.stock == 0:
-                    return Response({'error': True, 'message': 'Não há estoque deste livro!'}, status=status.HTTP_409_CONFLICT)
-                purchase_item = PurchaseItem(purchase=purchase, book=book, price=book.price, quantity=1)
+            if request.data.get('add', '').lower() == 'true':                
+            
+                quantity_to_set = int(request.data.get('quantity', 1)) 
+                
+                if quantity_to_set <= 0:
+                    return Response({'error': True, 'message': 'Quantidade inválida!'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                if quantity_to_set > book.stock:
+                    return Response({'error': True, 'message': 'Quantidade indisponível no estoque!'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                purchase_item, created = PurchaseItem.objects.get_or_create(purchase=purchase,book=book,defaults={'price': book.price,'quantity': 1})           
+                
+                if created:
+                    purchase_item.quantity = quantity_to_set
+                else:
+                    purchase.total += book.price * (quantity_to_set - purchase_item.quantity)
+                    purchase_item.quantity = quantity_to_set
+
+                purchase_item.price = book.price
                 purchase_item.save()
-                purchase.total += book.price
                 purchase.save()
-                return Response({'error': False, 'message': 'Livro adicionado ao carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
+                purchase.recalculate_total()
+
+                return Response({'error': False, 'message': f'{quantity_to_set} cópias do livro configuradas no carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
                 
             elif request.data.get('add', '').lower() == 'false':
-                purchase_items = PurchaseItem.objects.filter(purchase=purchase, book=book)
-                if purchase_items.exists():
-                    purchase_item = purchase_items.first()
+                purchase_item = PurchaseItem.objects.filter(purchase=purchase, book=book).first()
+
+                if not purchase_item:
+                    return Response({'error': True, 'message': 'Este livro não está no carrinho!'}, status=status.HTTP_404_NOT_FOUND)
+                
+                quantity_to_remove = int(request.data.get('quantity', 1))
+
+                if purchase_item.quantity <= quantity_to_remove:
                     total_deduction = purchase_item.price * purchase_item.quantity
                     purchase.total -= total_deduction
-                    purchase.total = max(purchase.total, 0) 
+                    purchase.total = max(purchase.total, 0)
                     purchase_item.delete()
-                    purchase.save()
-                    return Response({'error': False, 'message': 'Livro removido do carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
-                if not purchase_items.exists():
-                    return Response({'error': True, 'message': 'Este livro não está no carrinho!'}, status=status.HTTP_409_CONFLICT)
+                else:
+                    purchase_item.quantity -= quantity_to_remove
+                    purchase_item.save()
+                    purchase.total -= book.price * quantity_to_remove
+                    purchase.total = max(purchase.total, 0)
+                    purchase_item.save()
+                    purchase.recalculate_total()
+
+                return Response({'error': False, 'message': f'{quantity_to_remove} Livros removido do carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
 
             return Response({'error': True, 'message': 'Valor inválido para o campo "add".'}, status=status.HTTP_400_BAD_REQUEST)
 

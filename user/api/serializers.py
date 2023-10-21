@@ -7,10 +7,18 @@ class UserSerializer(serializers.ModelSerializer):
         model = models.User
         fields = '__all__'
 
+class PurchaseItemSerializer(serializers.ModelSerializer):
+    book_isbn = serializers.CharField(source='book.isbn')    
+    class Meta:
+        model = models.PurchaseItem
+        fields = ['book_isbn', 'quantity', 'price']
+
 class PurchaseSerializer(serializers.ModelSerializer): 
+    books = PurchaseItemSerializer(source='purchaseitem_set', many=True, read_only=True)
+    
     class Meta:
         model = models.Purchase
-        fields = '__all__'
+        fields = ['id', 'user', 'date', 'total', 'books', 'address', 'status']
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):

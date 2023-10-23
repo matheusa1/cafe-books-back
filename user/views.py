@@ -299,19 +299,14 @@ class CartAPIView(APIView):
                 quantity_to_remove = int(request.data.get('quantity', 1))
 
                 if purchase_item.quantity <= quantity_to_remove:
-                    total_deduction = purchase_item.price * purchase_item.quantity
-                    purchase.total -= total_deduction
-                    purchase.total = max(purchase.total, 0)
                     purchase_item.delete()
                 else:
                     purchase_item.quantity -= quantity_to_remove
                     purchase_item.save()
-                    purchase.total -= book.price * quantity_to_remove
-                    purchase.total = max(purchase.total, 0)
-                    purchase_item.save()
-                    purchase.recalculate_total()
 
-                return Response({'error': False, 'message': f'{quantity_to_remove} Livros removido do carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
+                purchase.recalculate_total()
+
+                return Response({'error': False, 'message': f'{quantity_to_remove} Livros removidos do carrinho com sucesso!'}, status=status.HTTP_201_CREATED)
 
             return Response({'error': True, 'message': 'Valor inválido para o campo "add".'}, status=status.HTTP_400_BAD_REQUEST)
 

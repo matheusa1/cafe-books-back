@@ -8,10 +8,17 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
-    book_isbn = serializers.CharField(source='book.isbn')    
+    book_isbn = serializers.CharField(source='book.isbn')
+    book_image = serializers.CharField(source='book.image')
+    book_title = serializers.CharField(source='book.title')
+    book_author = serializers.SerializerMethodField()
+
     class Meta:
         model = models.PurchaseItem
-        fields = ['book_isbn', 'quantity', 'price']
+        fields = ['book_isbn', 'quantity', 'price', 'book_image', 'book_title', 'book_author']
+
+    def get_book_author(self, obj):
+        return [author.name for author in obj.book.author.all()]
 
 class PurchaseSerializer(serializers.ModelSerializer): 
     books = PurchaseItemSerializer(source='purchaseitem_set', many=True, read_only=True)

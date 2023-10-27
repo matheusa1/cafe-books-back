@@ -332,8 +332,6 @@ class CartAPIView(APIView):
         except Purchase.DoesNotExist:
             return Response({'error': True, 'message': 'Carrinho não encontrado!'}, status=status.HTTP_404_NOT_FOUND)
         
-
-
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
@@ -344,3 +342,7 @@ class GetPurchaseByUser(APIView):
         purchases = user.purchases.all()
         serializer = PurchaseSerializer(purchases, many=True)
         return Response(serializer.data)
+    
+class GetRecommended(APIView):
+    def get(self,request):
+        pass

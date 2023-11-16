@@ -103,6 +103,7 @@ class PurchaseAPIView(APIView):
                 return Response({'error': True, 'message': f'Estoque insuficiente para o livro {item.book.title}'}, status=status.HTTP_409_CONFLICT)
 
             item.book.stock -= item.quantity
+            item.book.sales += item.quantity
             item.book.save()
             
             purchase_item =  PurchaseItem.objects.create(purchase=new_purchase, book=item.book, price=item.price, quantity=item.quantity)
@@ -165,6 +166,7 @@ class PurchaseWithoutCartAPIView(APIView):
         purchase_item.save()
         purchase.total = purchase_item.price * purchase_item.quantity
         book.stock = book.stock - 1
+        book.sales = book.sales + 1
         book.save()
         purchase.save()
 

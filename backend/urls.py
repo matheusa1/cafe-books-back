@@ -20,11 +20,10 @@ from django.urls import path, include
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
-from book.views import BookAPIView, CategoryAPIView, AuthorAPIView
+from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView
 from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
 
 
 route = routers.DefaultRouter()
@@ -49,5 +48,6 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/book/category/', CategoryAPIView.as_view()),
     path('api/book/author/', AuthorAPIView.as_view()),
+    path('api/book/bestsellers/', BestSellersAPIView.as_view()),
     path('', include(route.urls))
 ]

@@ -276,4 +276,11 @@ class CategoryAPIView(APIView):
             'error': False,
             'message': 'Categoria excluída com sucesso!'
         }, status=status.HTTP_200_OK)
+
+class BestSellersAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        book = Book.objects.all().order_by('-sales')[:10]
+        serializer = BookSerializer(book, many=True)
+        return Response(serializer.data)
     

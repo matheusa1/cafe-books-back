@@ -21,7 +21,7 @@ from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
 from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView
-from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView, PurchaseItemAPIView
+from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView, CartMultipleItensAPIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -43,7 +43,7 @@ urlpatterns = [
     path('api/user/purchase/', GetPurchaseByUser.as_view()),
     path('api/purchase/withoutcart/', PurchaseWithoutCartAPIView.as_view()),
     path('api/cart/', CartAPIView.as_view()),
-    path('api/cart/multiple/'), PurchaseItemAPIView.as_view(),
+    path('api/cart/multiple/', CartMultipleItensAPIView.as_view()),
     path('api/favorites/', FavoritesAPIView.as_view()),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

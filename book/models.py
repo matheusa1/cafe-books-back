@@ -55,3 +55,12 @@ class BookAuthor(models.Model):
 
     def __str__(self):
         return self.book.title + ' - ' + self.author.name
+
+class BestBooks(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    call = models.CharField(max_length=100, null=True, blank=True)
+    subtext = models.CharField(max_length=100, null=True, blank=True)
+    image_url = models.URLField(max_length=500, blank=True, null=True)
+
+    def __str__(self):
+        return self.book.title

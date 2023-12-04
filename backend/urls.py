@@ -20,9 +20,8 @@ from django.urls import path, include
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
-from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView, BiggestPromotionsAPIView
-from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView
-
+from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView, BestBooksAPIView, BiggestPromotionsAPIView
+from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView, CartMultipleItensAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
@@ -43,12 +42,14 @@ urlpatterns = [
     path('api/user/purchase/', GetPurchaseByUser.as_view()),
     path('api/purchase/withoutcart/', PurchaseWithoutCartAPIView.as_view()),
     path('api/cart/', CartAPIView.as_view()),
+    path('api/cart/multiple/', CartMultipleItensAPIView.as_view()),
     path('api/favorites/', FavoritesAPIView.as_view()),
     path('token/', CustomTokenObtainPairView.as_view(), name='token_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/book/category/', CategoryAPIView.as_view()),
     path('api/book/author/', AuthorAPIView.as_view()),
     path('api/book/bestsellers/', BestSellersAPIView.as_view()),
+    path('api/book/bestbooks/', BestBooksAPIView.as_view()),
     path('api/book/biggestpromotions/', BiggestPromotionsAPIView.as_view()),
     path('', include(route.urls))
 ]

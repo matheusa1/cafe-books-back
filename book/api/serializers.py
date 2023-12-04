@@ -20,3 +20,8 @@ class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Author
         fields = '__all__'
+
+class BestBooksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.BestBooks
+        fields = '__all__'

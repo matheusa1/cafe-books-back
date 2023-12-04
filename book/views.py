@@ -305,6 +305,12 @@ class BestBooksAPIView(APIView):
                 'message': 'Você já cadastrou 4 livros!'
             }, status=status.HTTP_401_UNAUTHORIZED)
         serializer = BestBooksSerializer(data=request.data)
+        if (BestBooks.objects.filter(book=request.data['book']).exists()):
+            return Response({
+                'error': True,
+                'message': 'Este livro já está cadastrado nos melhores!',
+                'type': 'book'
+                }, status=status.HTTP_409_CONFLICT)
         if serializer.is_valid():
             serializer.save()
             return Response({
@@ -313,12 +319,6 @@ class BestBooksAPIView(APIView):
             }, status=status.HTTP_201_CREATED)
 
         if serializer.errors:
-            if (BestBooks.objects.filter(book=request.data['book']).exists()):
-                return Response({
-                    'error': True,
-                    'message': 'Este livro já está cadastrado nos melhores!',
-                    'type': 'book'
-                }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self, request):
@@ -351,8 +351,12 @@ class BestBooksAPIView(APIView):
                 'error': True,
                 'message': 'Você não tem permissão para excluir livros!'
             }, status=status.HTTP_401_UNAUTHORIZED)
-        bestbooks = BestBooks.objects.get(book=request.data['book'])
-        bestbooks.delete()
+        bestbooks = BestBooks.objects.filter(book=request.data['book'])
+        try:
+            bestbooks.delete()
+        except:
+            for bestbooks in BestBooks.objects.all():
+                bestbooks.delete()
         return Response({
             'error': False,
             'message': 'Livro excluído com sucesso!'

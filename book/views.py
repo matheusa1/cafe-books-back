@@ -283,4 +283,27 @@ class BestSellersAPIView(APIView):
         book = Book.objects.all().order_by('-sales')[:10]
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data)
-    
+
+
+class BiggestPromotionsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        books_with_promotions = Book.objects.exclude(
+            promotional_price__isnull=True
+        ).order_by('promotional_price')[:10]
+
+        books_with_discounts = []
+        for book in books_with_promotions:
+            discount_percentage = f'{round((1 - (book.promotional_price / book.price)) * 100)}%'
+            books_with_discounts.append({
+                'book': BookSerializer(book).data,
+                'discount_percentage': discount_percentage
+            })
+
+        if books_with_discounts:
+            return Response(books_with_discounts)
+        else:
+            return Response({
+                'message': 'Não há livros com desconto disponível.'
+            }, status=status.HTTP_404_NOT_FOUND)

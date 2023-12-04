@@ -283,7 +283,7 @@ class BestSellersAPIView(APIView):
         book = Book.objects.all().order_by('-sales')[:10]
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data)
-    
+  
 class BestBooksAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -361,6 +361,7 @@ class BestBooksAPIView(APIView):
             'error': False,
             'message': 'Livro excluído com sucesso!'
         }, status=status.HTTP_200_OK)
+
 
 
 class BiggestPromotionsAPIView(APIView):

@@ -22,6 +22,7 @@ from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
 from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView, BestBooksAPIView, BiggestPromotionsAPIView
 from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView, CartMultipleItensAPIView
+
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 

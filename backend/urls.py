@@ -20,7 +20,7 @@ from django.urls import path, include
 from rest_framework import routers
 from book.api import viewsets as bookviewsets
 from user.api import viewsets as userviewsets
-from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView, BestBooksAPIView
+from book.views import BookAPIView, CategoryAPIView, AuthorAPIView, BestSellersAPIView, BestBooksAPIView, BiggestPromotionsAPIView
 from user.views import UserAPIView, PurchaseAPIView, CartAPIView, FavoritesAPIView, CustomTokenObtainPairView, GetPurchaseByUser, PurchaseWithoutCartAPIView, CartMultipleItensAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -50,5 +50,6 @@ urlpatterns = [
     path('api/book/author/', AuthorAPIView.as_view()),
     path('api/book/bestsellers/', BestSellersAPIView.as_view()),
     path('api/book/bestbooks/', BestBooksAPIView.as_view()),
+    path('api/book/biggestpromotions/', BiggestPromotionsAPIView.as_view()),
     path('', include(route.urls))
 ]

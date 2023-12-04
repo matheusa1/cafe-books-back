@@ -18,3 +18,7 @@ class BookCategoryViewsSet(viewsets.ModelViewSet):
 class AuthorViewsSet(viewsets.ModelViewSet):
     serializer_class = serializers.AuthorSerializer
     queryset = models.Author.objects.all()    
+
+class BestBooksViewsSet(viewsets.ModelViewSet):
+    serializer_class = serializers.BestBooksSerializer
+    queryset = models.BestBooks.objects.all()

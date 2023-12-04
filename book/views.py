@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from .models import Book, Category, BookCategory, Author, BookAuthor
-from .api.serializers import BookSerializer, CategorySerializer, BookCategorySerializer, AuthorSerializer
+from .models import Book, Category, BookCategory, Author, BookAuthor, BestBooks
+from .api.serializers import BookSerializer, CategorySerializer, BookCategorySerializer, AuthorSerializer, BestBooksSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import generics
@@ -283,6 +283,85 @@ class BestSellersAPIView(APIView):
         book = Book.objects.all().order_by('-sales')[:10]
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data)
+  
+class BestBooksAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        bestbooks = BestBooks.objects.all()
+        serializer = BestBooksSerializer(bestbooks, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para cadastrar livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        bestbooks = BestBooks.objects.all()
+        if(bestbooks.count() >= 4):
+            return Response({
+                'error': True,
+                'message': 'Você já cadastrou 4 livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = BestBooksSerializer(data=request.data)
+        if (BestBooks.objects.filter(book=request.data['book']).exists()):
+            return Response({
+                'error': True,
+                'message': 'Este livro já está cadastrado nos melhores!',
+                'type': 'book'
+                }, status=status.HTTP_409_CONFLICT)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'error': False,
+                'message': 'Livro cadastrado com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+
+        if serializer.errors:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para atualizar livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        bestbooks = BestBooks.objects.get(book=request.data['book'])
+        serializer = BestBooksSerializer(bestbooks, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'error': False,
+                'message': 'Livro atualizado com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+        if serializer.errors:
+            if (request.data['book'] == '' or request.data['call'] == '' or request.data['subtext'] == '' or request.data['image_url'] == ''):
+                return Response({
+                    'error': True,
+                    'message': 'Todos os campos são obrigatórios!'
+                }, status=status.HTTP_409_CONFLICT)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+    def delete(self, request):
+        user = request.user
+        if(user.type != 'admin'):
+            return Response({
+                'error': True,
+                'message': 'Você não tem permissão para excluir livros!'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        bestbooks = BestBooks.objects.filter(book=request.data['book'])
+        try:
+            bestbooks.delete()
+        except:
+            for bestbooks in BestBooks.objects.all():
+                bestbooks.delete()
+        return Response({
+            'error': False,
+            'message': 'Livro excluído com sucesso!'
+        }, status=status.HTTP_200_OK)
+
 
 
 class BiggestPromotionsAPIView(APIView):

@@ -285,7 +285,6 @@ class BestSellersAPIView(APIView):
         return Response(serializer.data)
     
 class BestBooksAPIView(APIView):
-    permission_classes = [IsAuthenticated]
     def get(self, request):
         bestbooks = BestBooks.objects.all()
         serializer = BestBooksSerializer(bestbooks, many=True)

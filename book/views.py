@@ -278,7 +278,6 @@ class CategoryAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 class BestSellersAPIView(APIView):
-    permission_classes = [IsAuthenticated]
     def get(self, request):
         book = Book.objects.all().order_by('-sales')[:10]
         serializer = BookSerializer(book, many=True)
@@ -363,7 +362,6 @@ class BestBooksAPIView(APIView):
 
 
 class BiggestPromotionsAPIView(APIView):
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         books_with_promotions = Book.objects.exclude(

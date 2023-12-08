@@ -68,6 +68,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://vercel.app",
     "https://cafe-books-front-dxnuuny2q-matheusa1.vercel.app",
     "https://cafe-books-front.vercel.app",
+    "https://cafebooks.shop",
+    "https://www.cafebooks.shop",
 ]
 CSRF_TRUSTED_ORIGINS = [
         "http://localhost:3000",
@@ -76,6 +78,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://vercel.app",
     "https://cafe-books-front-dxnuuny2q-matheusa1.vercel.app",
     "https://cafe-books-front.vercel.app",
+    "https://cafebooks.shop",
+    "https://www.cafebooks.shop",
 ]
 
 

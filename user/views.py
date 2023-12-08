@@ -356,6 +356,7 @@ class CartAPIView(APIView):
 class CartMultipleItensAPIView(APIView):
     def post(self,request):
         user = request.user
+        user = User.objects.get(id=user.id)
         if not hasattr(user, 'cart') or user.cart is None:
             cart = Purchase(user=user, status='Pendente', total=0.0)
             cart.save()
@@ -369,7 +370,7 @@ class CartMultipleItensAPIView(APIView):
                     'error': True,
                     'message': 'Este livro não existe!'
                 }, status=status.HTTP_409_CONFLICT)
-            book = Book.objects.get(isbn=book.isbn)
+            book = Book.objects.get(isbn=item["isbn"])
             purchase_item = PurchaseItem(purchase=cart, book=book, price=book.price, quantity=item["quantity"])
             purchase_item.save()
             cart.total = cart.total + book.price * item["quantity"]

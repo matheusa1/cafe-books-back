@@ -65,6 +65,25 @@ class UserAPIView(APIView):
                 }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+    def put(self, request):
+        user = User.objects.get(id=request.data['id'])
+        if("type" in request.data):
+            if(request.data['type'] == 'admin' and user.type != 'admin'):
+                if("adminPassword" not in request.data or request.data['adminPassword'] != 'admindocafebooks'):
+                    return Response({
+                        'error': True,
+                        'message': 'Senha administrativa incorreta!'
+                    }, status=status.HTTP_409_CONFLICT)
+        
+        serializer = UserSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'error': False,
+                'message': 'Usuário atualizado com sucesso!'
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
 class PurchaseAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -337,6 +356,7 @@ class CartAPIView(APIView):
 class CartMultipleItensAPIView(APIView):
     def post(self,request):
         user = request.user
+        user = User.objects.get(id=user.id)
         if not hasattr(user, 'cart') or user.cart is None:
             cart = Purchase(user=user, status='Pendente', total=0.0)
             cart.save()
@@ -345,15 +365,15 @@ class CartMultipleItensAPIView(APIView):
         else:
             cart = user.cart
         for item in request.data['books']:
-            if(Book.objects.filter(isbn=item.isbn).exists() == False):
+            if(Book.objects.filter(isbn=item["isbn"]).exists() == False):
                 return Response({
                     'error': True,
                     'message': 'Este livro não existe!'
                 }, status=status.HTTP_409_CONFLICT)
-            book = Book.objects.get(isbn=book.isbn)
-            purchase_item = PurchaseItem(purchase=cart, book=book, price=book.price, quantity=item.quantity)
+            book = Book.objects.get(isbn=item["isbn"])
+            purchase_item = PurchaseItem(purchase=cart, book=book, price=book.price, quantity=item["quantity"])
             purchase_item.save()
-            cart.total = cart.total + book.price * item.quantity
+            cart.total = cart.total + book.price * item["quantity"]
             cart.save()
             book.stock = book.stock - 1
             book.save()

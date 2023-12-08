@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 
 class BookAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         book = Book.objects.all()
         serializer = BookSerializer(book, many=True)
@@ -18,7 +19,7 @@ class BookAPIView(APIView):
 
     def post(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para cadastrar livros!'
@@ -67,47 +68,45 @@ class BookAPIView(APIView):
 
     def put(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if user.type != 'admin':
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para atualizar livros!'
             }, status=status.HTTP_401_UNAUTHORIZED)
-        book = Book.objects.get(isbn=request.data['isbn'])
+
+        try:
+            book = Book.objects.get(isbn=request.data['isbn'])
+        except Book.DoesNotExist:
+            return Response({
+                'error': True,
+                'message': 'Livro não encontrado!'
+            }, status=status.HTTP_404_NOT_FOUND)
+
         serializer = BookSerializer(book, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            for categories in book.category.all():
-                if (categories.name not in request.data['category']):
-                    book = Book.objects.get(isbn=request.data['isbn'])
-                    book_category = BookCategory.objects.get(
-                        book=book, category=categories)
-                    book_category.delete()
-            for categories in request.data['category']:
-                category = Category.objects.get(name=categories)
-                if (category not in book.category.all()):
-                    book = Book.objects.get(isbn=request.data['isbn'])
-                    book_category = BookCategory(book=book, category=category)
-                    book_category.save()
-            for author in book.author.all():
-                if (author.name not in request.data['author']):
-                    book = Book.objects.get(isbn=request.data['isbn'])
-                    book_author = BookAuthor.objects.get(
-                        book=book, author=author)
-                    book_author.delete()
-            for author in request.data['author']:
-                if (Author.objects.filter(name=author).exists() == False):
+
+            # Limpe todos os autores existentes associados ao livro
+            book.author.clear()
+
+            # Adicione os novos autores com base em request.data['author']
+            for author_name in request.data['author']:
+                try:
+                    author = Author.objects.get(name=author_name)
+                except Author.DoesNotExist:
                     return Response({
                         'error': True,
-                        'message': 'Este autor não existe!'
+                        'message': f'O autor "{author_name}" não existe!'
                     }, status=status.HTTP_409_CONFLICT)
-                author = Author.objects.get(name=author)
-                book = Book.objects.get(isbn=request.data['isbn'])
+
                 book_author = BookAuthor(book=book, author=author)
                 book_author.save()
+
             return Response({
                 'error': False,
                 'message': 'Livro atualizado com sucesso!'
             }, status=status.HTTP_201_CREATED)
+
         if serializer.errors:
             if (request.data['isbn'] == '' or request.data['name'] == '' or request.data['author'] == '' or request.data['description'] == '' or request.data['category'] == '' or request.data['image'] == '' or request.data['pages'] == '' or request.data['year'] == '' or request.data['publisher'] == '' or request.data['language'] == '' or request.data['price'] == '' or request.data['stock'] == ''):
                 return Response({
@@ -118,7 +117,7 @@ class BookAPIView(APIView):
 
     def delete(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para excluir livros!'
@@ -133,6 +132,7 @@ class BookAPIView(APIView):
 
 class AuthorAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         author = Author.objects.all()
         serializer = AuthorSerializer(author, many=True)
@@ -140,7 +140,7 @@ class AuthorAPIView(APIView):
 
     def post(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para cadastrar autores!'
@@ -169,7 +169,7 @@ class AuthorAPIView(APIView):
 
     def put(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para atualizar autores!'
@@ -192,7 +192,7 @@ class AuthorAPIView(APIView):
 
     def delete(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para excluir autores!'
@@ -204,8 +204,10 @@ class AuthorAPIView(APIView):
             'message': 'Autor excluído com sucesso!'
         }, status=status.HTTP_200_OK)
 
+
 class CategoryAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         category = Category.objects.all()
         serializer = CategorySerializer(category, many=True)
@@ -213,7 +215,7 @@ class CategoryAPIView(APIView):
 
     def post(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para cadastrar categorias!'
@@ -242,12 +244,13 @@ class CategoryAPIView(APIView):
 
     def put(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para atualizar categorias!'
             }, status=status.HTTP_401_UNAUTHORIZED)
-        category = Category.objects.get(name=request.data['name'], image=request.data['image'])
+        category = Category.objects.get(
+            name=request.data['name'], image=request.data['image'])
         serializer = CategorySerializer(category, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -265,7 +268,7 @@ class CategoryAPIView(APIView):
 
     def delete(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para excluir categorias!'
@@ -277,27 +280,31 @@ class CategoryAPIView(APIView):
             'message': 'Categoria excluída com sucesso!'
         }, status=status.HTTP_200_OK)
 
+
 class BestSellersAPIView(APIView):
+
     def get(self, request):
-        book = Book.objects.all().order_by('-sales')[:10]
+        book = Book.objects.all().order_by('-sales')[:20]
         serializer = BookSerializer(book, many=True)
         return Response(serializer.data)
-    
+
+
 class BestBooksAPIView(APIView):
+
     def get(self, request):
         bestbooks = BestBooks.objects.all()
         serializer = BestBooksSerializer(bestbooks, many=True)
         return Response(serializer.data)
-    
+
     def post(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para cadastrar livros!'
             }, status=status.HTTP_401_UNAUTHORIZED)
         bestbooks = BestBooks.objects.all()
-        if(bestbooks.count() >= 4):
+        if (bestbooks.count() >= 4):
             return Response({
                 'error': True,
                 'message': 'Você já cadastrou 4 livros!'
@@ -308,7 +315,7 @@ class BestBooksAPIView(APIView):
                 'error': True,
                 'message': 'Este livro já está cadastrado nos melhores!',
                 'type': 'book'
-                }, status=status.HTTP_409_CONFLICT)
+            }, status=status.HTTP_409_CONFLICT)
         if serializer.is_valid():
             serializer.save()
             return Response({
@@ -321,7 +328,7 @@ class BestBooksAPIView(APIView):
 
     def put(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para atualizar livros!'
@@ -341,10 +348,10 @@ class BestBooksAPIView(APIView):
                     'message': 'Todos os campos são obrigatórios!'
                 }, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
     def delete(self, request):
         user = request.user
-        if(user.type != 'admin'):
+        if (user.type != 'admin'):
             return Response({
                 'error': True,
                 'message': 'Você não tem permissão para excluir livros!'
